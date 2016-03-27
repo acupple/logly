@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>Logly</title>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<style type="text/css"> 
+	html,body{
+		background:#000; color:#090;
+	} 
+</style>
+<script type="text/javascript">
+$(document).ready(function(){
+	var querystring = location.search.replace( '?', '' ).split( '&' );
+	var queryObj = {};
+	for ( var i=0; i<querystring.length; i++ ) {
+      var name = querystring[i].split('=')[0];
+      var value = querystring[i].split('=')[1];
+      queryObj[name] = value;
+	}
+	var file_path = queryObj['file_path'];
+	var begin = 1;
+	var offset = 10;
+	if(!file_path){
+		$('#log').append('<p> file_path parameter is missed. <br />' +
+		'eg: polls/index?file_path=urlencode(path) </p>'); 
+	} else {
+		var timer = setInterval(function () {
+			var url = 'http://'+location.host + '/polls/pull?file_path=' + file_path + 
+			'&begin=' + begin +
+			'&offset=' + offset;
+			$.ajax({
+				url: url, 
+				type: 'GET', 
+				success: function(ret){
+					if(ret==500){
+						clearInterval(timer);
+					}
+					if(ret.length > 0){
+						ret.data.forEach(function(line){
+							$('#log').append(line + '<br />');
+							begin ++;
+						});
+	                     window.scrollTo(0,document.body.scrollHeight); 
+					 }
+				}, error: function(ret){
+					$('#log').append( + 'server error !! contact logly admin<br />');
+					return false; 
+				}
+			});
+		}, 500);
+	}
+});
+</script>
+</head>
+
+<body>
+<div style="margin-top:10px;"> 
+	<p id='log'></p> 
+</div> 
+</body>
+</html>
